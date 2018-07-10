@@ -6,7 +6,7 @@
 #endif
 
 #define INT_PIN 2
-#define PIN 6
+#define TANK_PIN 6
 #define LINE_PIN 8
 #define IR_PIN_FRONT A0
 #define IR_PIN_END A1
@@ -24,8 +24,8 @@
 #define SIDE_DELAY 85 //500
 #define ERROR_DELAY 1000
 
-//Adafruit_NeoPixel strip = Adafruit_NeoPixel(LEDS_TANK_NUM, PIN, NEO_GRB + NEO_KHZ800);
-//Adafruit_NeoPixel strip2 = Adafruit_NeoPixel(LEDS_SIDE_NUM, LINE_PIN, NEO_GRB + NEO_KHZ800);
+Adafruit_NeoPixel strip = Adafruit_NeoPixel(LEDS_TANK_NUM, TANK_PIN, NEO_GRB + NEO_KHZ800);
+Adafruit_NeoPixel strip2 = Adafruit_NeoPixel(LEDS_SIDE_NUM, LINE_PIN, NEO_GRB + NEO_KHZ800);
 
 //======================================================================================================
 void turnoffWipe_side(uint32_t c, uint8_t wait);
@@ -69,32 +69,41 @@ class IRSensor
 
 class SerialInfo
 {
-  String toSend;
+  uint8_t index;
   uint16_t lastUpdate;
   uint16_t updateInterval;
   
   public:
   SerialInfo(uint16_t updateInt)
   {
-    toSend = "";
+    index = 0;
     lastUpdate = 0;
     updateInterval = updateInt;
   }
-  String Update()
+  void Update(char* message)
   { 
-    toSend = "";
     if(millis() - lastUpdate > updateInterval)
     {
+      index = 0;
       char incomingByte;
       lastUpdate = millis();
-      while(Serial.available())
+      if(Serial.available())
       {
-        incomingByte = Serial.read();
-        toSend += incomingByte;
+        while(Serial.available())
+        {
+          incomingByte = Serial.read();
+          message[index] = incomingByte;
+          index++;
+        }
       }
-      if(toSend.length() > 0)
+      else
       {
-        return toSend;
+        message[0] = '\0';
+      }
+      if(message[0] != '\0')
+      {
+        message[index] = '\0';
+        Serial.flush();
       }
     }
   }
@@ -102,7 +111,7 @@ class SerialInfo
 
 class SideLeds
 {
-  Adafruit_NeoPixel strip2;
+  //Adafruit_NeoPixel strip2;
   uint8_t toggle;
   uint16_t lastUpdate;
   uint16_t lastUpdateOff;
@@ -111,12 +120,12 @@ class SideLeds
   public:
   SideLeds(uint16_t ledSpeed)
   {
-    strip2 = Adafruit_NeoPixel(LEDS_SIDE_NUM, LINE_PIN, NEO_GRB + NEO_KHZ800);
+    //strip2 = Adafruit_NeoPixel(LEDS_SIDE_NUM, LINE_PIN, NEO_GRB + NEO_KHZ800);
     updateInterval = ledSpeed;
     lastUpdate = 0;
     lastUpdateOff = 0;
     toggle = 0;
-    strip2.begin();
+    //strip2.begin();
     turnoffWipe_side(strip2.Color(0,0,0), 10);
     strip2.show();
   }
@@ -186,20 +195,21 @@ class TankLeds
   uint16_t lastUpdate;
   uint16_t lastUpdateError;
   uint16_t updateInterval;
-  Adafruit_NeoPixel strip;
+  //Adafruit_NeoPixel strip;
+  //friend class Adafruit_NeoPixel;
   
   public:
   TankLeds(uint16_t ledSpeed)
   {
-    strip = Adafruit_NeoPixel(LEDS_TANK_NUM, PIN, NEO_GRB + NEO_KHZ800);
+    //strip = Adafruit_NeoPixel(LEDS_TANK_NUM, TANK_PIN, NEO_GRB + NEO_KHZ800);
     timer = LEDS_TANK_NUM - 1;
     toggle = 0;
     lastUpdate = 0;
     lastUpdateError = 0;
     updateInterval = ledSpeed;
-    strip.begin();
+    //strip.begin();
     colorWipe(TANK_COLOR, 20);
-    strip.show();
+    //strip.show();
   }
   void turnOff()
   {
@@ -232,7 +242,7 @@ class TankLeds
     for (uint16_t i = 0; i < LEDS_TANK_NUM; i++)
     {
       strip.setPixelColor(i, c);
-      delay(wait);
+      //delay(wait);
     }
        strip.show();
   }
@@ -241,39 +251,48 @@ class TankLeds
 
 IRSensor irFront(IR_PIN_FRONT,  CAR_CLOSE,  CAR_AWAY, 500);
 IRSensor irEnd(IR_PIN_END,   CAR_CLOSE,  CAR_AWAY, 500);
-//SideLeds ledBelt(SIDE_DELAY);
-//TankLeds ledTank(1000);
+SideLeds* ledBelt;
+TankLeds* ledTank;
 SerialInfo serialData(1000);
 
 uint8_t startWipe;
 uint8_t offWipe;
 
 uint8_t errorReset;
-String inputString;
 String outputString;
 uint8_t error;
 uint8_t ledNum;
+char* inputCh;
 void setup() 
 {
+  strip.begin();
+  strip2.begin();
   startWipe = 0;
   offWipe = 0;
   errorReset = 0;
-  inputString = "";
   outputString = "jo";
   error &= 0x000;
   ledNum = 0;
+  inputCh = calloc(20,sizeof(char));
   Serial.begin(115200);
-  Serial.println("START");
+  //Serial.println("START");
   delay(2000);
+  TankLeds* ledTank = new TankLeds(1000);
+  SideLeds* ledBelt = new SideLeds(SIDE_DELAY);
 }
 
 void loop() 
 {
 //=================================SERIAL================================
-  //inputString = serialData.Update();
-  //error = checkString(inputString);
-  //Serial.println(inputString);
-  
+  serialData.Update(inputCh);
+  error = checkString(inputCh, error);
+  if(inputCh[0] !=  '\0')
+  {
+    Serial.println(inputCh);
+    Serial.println(error);   
+    inputCh[0] = '\0';
+  }
+
   if(!(error & 0x001 || error & 0x010))//comm_error & comm_power_error !
   {
     startWipe = irFront.Update();
@@ -282,79 +301,78 @@ void loop()
     if(offWipe) outputString = "positionManagement_1 ";
   }
 
-  sendSerial(outputString);
-}//meh
+ sendSerial(outputString);
+//}//meh
 //==================================IR+LED================================  
-//  //set side led & tank led!
-//  //TURN ON
-//  if(startWipe)
-//  {
-//    if(error & 0x100)
-//    {
-//      ledBelt.Update("errorFlash",ledNum);
-//    }
-//    else
-//    {
-//      if(errorReset)
-//      {
-//        for(uint8_t k = 0; k <= ledNum; k++)
-//        {
-//                  strip2.setPixelColor(k, strip2.Color(0,165,0));
-//        }
-//        errorReset = 0;
-//      }
-//      ledNum++;
-//      ledBelt.Update("turnOn",ledNum);
-//      ledTank.flash();
-//      if(ledNum == LEDS_SIDE_NUM)
-//      {
-//        startWipe = 0;
-//        ledTank.turnOff();
-//      }
-//    }
-//  }
-//  //TURN OFF
-//  if(offWipe)
-//  {
-//    ledNum--;
-//    ledBelt.Update("turnOff",ledNum);
-//    if(ledNum == 0)
-//    {
-//      offWipe = 0;
-//      //tankerror !!
-//      //ledTank.errorFlash();
-//    }
-//  }
-//  
-//}
+  //set side led & tank led!
+  //TURN ON
+  if(startWipe)
+  {
+    if(error & 0x100)
+    {
+      //ledBelt->Update("errorFlash",ledNum);
+    }
+    else
+    {
+      if(errorReset)
+      {
+        for(uint8_t k = 0; k <= ledNum; k++)
+        {
+                  strip2.setPixelColor(k, strip2.Color(0,165,0));
+        }
+        errorReset = 0;
+      }
+      ledNum++;
+      //ledBelt->Update("turnOn",ledNum);
+      ledTank->flash();
+      if(ledNum == LEDS_SIDE_NUM)
+      {
+        startWipe = 0;
+        ledTank->turnOff();
+      }
+    }
+  }
+  //TURN OFF
+  if(offWipe)
+  {
+    ledNum--;
+    //ledBelt->Update("turnOff",ledNum);
+    if(ledNum == 0)
+    {
+      offWipe = 0;
+      //tankerror !!
+      //ledTank.errorFlash();
+    }
+  }
+  
+}
 //=========================================================================  
-uint8_t checkString(String toSend)
+uint8_t checkString(String toSend, uint8_t error)
 {
-    uint8_t error_input = 0x000;
     if(toSend == "gateway_error"){
-        error_input |= 0x001;
+        error |= 0x001;
     }
     if(toSend == "gateway_error_reset"){
-        error_input &= ~0x001;
+        error &= ~0x001;
     }
     if(toSend == "gateway_power_error"){
-        error_input |= 0x010;
+        error |= 0x010;
     }
     if(toSend == "gateway_power_error_reset"){
-        error_input &= ~0x001;
+        error &= ~0x001;
     }
     if(toSend == "belt_plc_error"){
-        error_input |= 0x100;
+        error |= 0x100;
     }
     if(toSend == "belt_plc_error_reset"){
-        error_input &= ~0x100;
+        error &= ~0x100;
         errorReset = 1;
     }
 //    if(toSend == "go_to_sleep"){
 //        delay(1000);
 //        go_to_sleep();
 //    }
-    return error_input;
+    return error;
 }
 void sendSerial(String data)
 {
