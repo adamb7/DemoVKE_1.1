@@ -339,9 +339,9 @@ void loop()
     //Serial.println(inputCh);   
     inputCh[0] = '\0';
   }
-
-  //if(!(error & 0x01 || error & 0x10))//comm_error & comm_power_error !
-  if(!gwError && !gwPowerError)//comm_error & comm_power_error !
+  
+  //comm_error & comm_power_error !
+  if(!gwError && !gwPowerError)
   {
     if(startWipe == 0)
     {
@@ -371,7 +371,6 @@ void loop()
     if((millis() - millisLedOn > SIDE_ON_SPEED) && (plcError == 0) )
     {
       millisLedOn = millis();
-      //ledBelt->turnOn(ledNumOn);
       strip2.setPixelColor(ledNumOn,SIDE_COLOR);
       strip2.show();
       if(millis() - millisTankFlash > TANK_FLASH_SPEED)
@@ -386,7 +385,7 @@ void loop()
       {
         turnOnLeds = 0;
         ledNumOff = 0;
-        startWipe = 0;
+        //startWipe = 0;
         ledsAreOn = 1;
         strip.setPixelColor(lapCount, TANK_COLOR);
         strip.show();
@@ -420,6 +419,7 @@ void loop()
       {
         strip.setPixelColor(lapCount, strip.Color(0,0,0));
         strip.show();
+        //startWipe = 0;
         ledNumOn = 0;
         ledsAreOn = 0;
         lapCount++;
