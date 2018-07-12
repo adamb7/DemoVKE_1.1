@@ -20,11 +20,12 @@
 #define SIDE_COLOR strip2.Color(0,165,0)
 #define ERROR_COLOR strip2.Color(165,0,0)
 #define OFF_COLOR strip2.Color(0,0,0)
-#define SIDE_OFF_SPEED 20
+#define SIDE_OFF_SPEED 5
 #define SIDE_ON_SPEED 85 //500
 #define TANK_FLASH_SPEED 150
 #define TANK_ERROR_FLASH_SPEED 500
 #define TANK_ERROR_DURATION 10
+#define BELT_FLASH_SPEED 500
 
 
 #define ERROR_DELAY 1000
@@ -116,92 +117,92 @@ class SerialInfo
   }
 };
 
-class SideLeds
-{
-  uint8_t toggle;
-  unsigned long long lastUpdate;
-  uint32_t lastUpdateOff;
-  uint32_t updateInterval;
-  
-  public:
-  SideLeds(uint32_t ledSpeed)
-  {
-    updateInterval = ledSpeed;
-    lastUpdate = 0;
-    lastUpdateOff = 0;
-    toggle = 0;
-    turnoffWipe_side(strip2.Color(0,0,0), 10);
-    strip2.show();
-  }
-  void Update(char* task, uint8_t i)
-  {
-    if(millis() - lastUpdate > updateInterval)
-    {
-      Serial.println("TURN_ON");
-      //Serial.println(task);
-      //Serial.println(sizeof("turnOn"));
-      lastUpdate = millis();
-      Serial.println("TURN_ON_2");
-      //task = "turnOn";
-      //if(strncmp(task,"turnOn",7) == 0)
-      if(task == "turnOn")
-      {
-        Serial.println("TURN_ON_3");
-        //turnOn(i);
-      }
-      else
-      {
-        Serial.println("else");
-      }
-    }
-    if(millis() - lastUpdate > ERROR_DELAY)
-    {
-      //lastUpdate = millis(); 
-      if(task == "errorFlash")
-      {
-        errorFlash(i);
-      }
-    }
-    if(millis() - lastUpdateOff > SIDE_OFF_SPEED)
-    {
-      //lastUpdateOff = millis();
-      if(task == "turnOff")
-      {
-        turnOff(i);
-      }
-    }
-  }
-  void turnOn(uint8_t i)
-  {
-    strip2.setPixelColor(i,SIDE_COLOR);
-    strip2.show();
-  }
-  void turnOff(uint8_t i)
-  {
-    strip2.setPixelColor(i,OFF_COLOR);
-    strip2.show();
-  }
-  void errorFlash(uint8_t i)
-  {
-    toggle != toggle;
-    for(uint8_t k = 0;k <= i;k++)
-    {
-      strip2.setPixelColor(i , toggle ? ERROR_COLOR : OFF_COLOR);
-    }
-    strip2.show();
-  }
-  void turnoffWipe_side(uint32_t c, uint8_t wait)
-  {
-    for(uint8_t i = LEDS_SIDE_NUM; i > 0; i--)
-    {
-      strip2.setPixelColor(i,c);
-      strip2.show();
-      delay(wait);
-    }
-    strip2.setPixelColor(0,c);
-    strip2.show();
-  }
-};
+//class SideLeds
+//{
+//  uint8_t toggle;
+//  unsigned long long lastUpdate;
+//  uint32_t lastUpdateOff;
+//  uint32_t updateInterval;
+//  
+//  public:
+//  SideLeds(uint32_t ledSpeed)
+//  {
+//    updateInterval = ledSpeed;
+//    lastUpdate = 0;
+//    lastUpdateOff = 0;
+//    toggle = 0;
+//    turnoffWipe_side(strip2.Color(0,0,0), 10);
+//    strip2.show();
+//  }
+//  void Update(char* task, uint8_t i)
+//  {
+//    if(millis() - lastUpdate > updateInterval)
+//    {
+//      Serial.println("TURN_ON");
+//      //Serial.println(task);
+//      //Serial.println(sizeof("turnOn"));
+//      lastUpdate = millis();
+//      Serial.println("TURN_ON_2");
+//      //task = "turnOn";
+//      //if(strncmp(task,"turnOn",7) == 0)
+//      if(task == "turnOn")
+//      {
+//        Serial.println("TURN_ON_3");
+//        //turnOn(i);
+//      }
+//      else
+//      {
+//        Serial.println("else");
+//      }
+//    }
+//    if(millis() - lastUpdate > ERROR_DELAY)
+//    {
+//      //lastUpdate = millis(); 
+//      if(task == "errorFlash")
+//      {
+//        errorFlash(i);
+//      }
+//    }
+//    if(millis() - lastUpdateOff > SIDE_OFF_SPEED)
+//    {
+//      //lastUpdateOff = millis();
+//      if(task == "turnOff")
+//      {
+//        turnOff(i);
+//      }
+//    }
+//  }
+//  void turnOn(uint8_t i)
+//  {
+//    strip2.setPixelColor(i,SIDE_COLOR);
+//    strip2.show();
+//  }
+//  void turnOff(uint8_t i)
+//  {
+//    strip2.setPixelColor(i,OFF_COLOR);
+//    strip2.show();
+//  }
+//  void errorFlash(uint8_t i)
+//  {
+//    toggle != toggle;
+//    for(uint8_t k = 0;k <= i;k++)
+//    {
+//      strip2.setPixelColor(i , toggle ? ERROR_COLOR : OFF_COLOR);
+//    }
+//    strip2.show();
+//  }
+//  void turnoffWipe_side(uint32_t c, uint8_t wait)
+//  {
+//    for(uint8_t i = LEDS_SIDE_NUM; i > 0; i--)
+//    {
+//      strip2.setPixelColor(i,c);
+//      strip2.show();
+//      delay(wait);
+//    }
+//    strip2.setPixelColor(0,c);
+//    strip2.show();
+//  }
+//};
 
 class TankLeds 
 {
@@ -262,12 +263,9 @@ class TankLeds
 
 IRSensor irFront(IR_PIN_FRONT,  CAR_CLOSE,  CAR_AWAY, 500);
 IRSensor irEnd(IR_PIN_END,   CAR_CLOSE,  CAR_AWAY, 500);
-//IRSensor* irFront;
-//IRSensor* irEnd;
-SideLeds* ledBelt;
-TankLeds* ledTank;
+//SideLeds* ledBelt;
+//TankLeds* ledTank;
 SerialInfo serialData(1000);
-//SerialInfo* serialData;
 
 uint8_t startWipe;
 uint8_t offWipe;
@@ -276,13 +274,17 @@ uint8_t tankError;
 uint8_t toggle;
 uint8_t lapCount;
 uint8_t tankErrorDuration;
+uint8_t beltErrorReset;
+
+uint8_t gwError;
+uint8_t gwPowerError;
 
 uint32_t millisLedOn;
 uint32_t millisLedOff;
 uint32_t millisTankFlash;
 uint32_t millisTankErrorFlash;
+uint32_t millisBeltErrorFlash;
 
-uint8_t errorReset;
 String outputString;
 uint8_t error;
 uint8_t ledNumOn;
@@ -292,27 +294,27 @@ void setup()
 {
   strip.begin();
   strip2.begin();
+  colorWipe(TANK_COLOR, 20);
+  strip.show();
+  turnoffWipe_side(strip2.Color(0,0,0), 10);
+  strip2.show();
   startWipe = 0;
   tankErrorDuration = TANK_ERROR_DURATION;
   offWipe = 0;
   tankError = 0;
   turnOnLeds = 0;
-  errorReset = 0;
+  beltErrorReset = 0;
   toggle = 0;
   outputString = "";
-  error &= 0x000;
+  error &= 0x00;
   ledNumOn = 0;
   ledNumOff = 0;
   inputCh = calloc(20,sizeof(char));
   Serial.begin(115200);
   //Serial.println("START");  
-  //IRSensor* irFront = new IRSensor(IR_PIN_FRONT,  CAR_CLOSE,  CAR_AWAY, 500);
-  //IRSensor* irEnd = new IRSensor(IR_PIN_END,  CAR_CLOSE,  CAR_AWAY, 500);
-  TankLeds* ledTank = new TankLeds(1000);
-  SideLeds* ledBelt = new SideLeds(SIDE_ON_SPEED);
-  //SerialInfo* serialData= new SerialInfo(1000);
   millisLedOn = 0;
   millisLedOff = 0;
+  millisBeltErrorFlash = 0;
   lapCount = 0;
   Serial.flush();
   delay(2000);
@@ -330,7 +332,7 @@ void loop()
     inputCh[0] = '\0';
   }
 
-  if(!(error & 0x001 || error & 0x010))//comm_error & comm_power_error !
+  if(!(error & 0x01 || error & 0x10))//comm_error & comm_power_error !
   {
     if(startWipe == 0)
     {
@@ -339,8 +341,8 @@ void loop()
       {
         turnOnLeds = 1;
         offWipe = 0;
-        outputString = "positionManagement_0 ";
-        sendSerial(outputString);
+        //outputString = "positionManagement_0 ";
+        //sendSerial(outputString);
         
       }
     }
@@ -350,17 +352,19 @@ void loop()
       if(offWipe)
       {
         startWipe = 0;
-        outputString = "positionManagement_1 ";
-        sendSerial(outputString);
+        //outputString = "positionManagement_1 ";
+        //sendSerial(outputString);
       }
     }
   }
-  if(ledNumOn < LEDS_SIDE_NUM && turnOnLeds)
+  if(ledNumOn < LEDS_SIDE_NUM && turnOnLeds && lapCount < 6)
   {
-    if(millis() - millisLedOn > SIDE_ON_SPEED)
+    if((millis() - millisLedOn > SIDE_ON_SPEED) && !(error & 0x02) )
     {
       millisLedOn = millis();
-      ledBelt->turnOn(ledNumOn);
+      //ledBelt->turnOn(ledNumOn);
+      strip2.setPixelColor(ledNumOn,SIDE_COLOR);
+      strip2.show();
       if(millis() - millisTankFlash > TANK_FLASH_SPEED)
       {
         millisTankFlash = millis();
@@ -368,6 +372,7 @@ void loop()
         strip.setPixelColor(lapCount, toggle? TANK_COLOR : strip.Color(0,0,0));
         strip.show();
       }
+      //ledAllOn
       if(ledNumOn == (LEDS_SIDE_NUM - 1))
       {
         turnOnLeds = 0;
@@ -378,19 +383,50 @@ void loop()
       }
       ledNumOn++;
     }
+    //beltPLCERROR + ledTurnOn
+    if(millis()- millisBeltErrorFlash > BELT_FLASH_SPEED)
+    {
+      millisBeltErrorFlash = millis();
+      beltError(1,error);
+//      if(error & 0x100)
+//      {
+//        toggle = toggle? 0 : 1;
+//        for(uint8_t k = 0;k <= ledNumOn;k++)
+//        {
+//          strip2.setPixelColor(k, toggle ? ERROR_COLOR : OFF_COLOR);
+//        }
+//        strip2.show();
+//      }
+//      if(beltErrorReset)
+//      {
+//        for(uint8_t k = 0;k <= ledNumOn;k++)
+//        {
+//          strip2.setPixelColor(k, strip2.Color(0,165,0));
+//        }
+//        strip2.show();
+//        beltErrorReset = 0;
+//      }
+    }
   }
-  if(ledNumOn == 60 && !turnOnLeds && offWipe)
+  //beltPLCERROR + ledsAreOn //beltPLCERROR + ledsAreOff
+  //Serial.print(error);
+  beltError(0,error);
+  
+  
+  if(ledNumOn == 60 && !turnOnLeds && offWipe && lapCount < 6)
   {
-    if(millis()- millisLedOff > 5)
+    if(millis()- millisLedOff > SIDE_OFF_SPEED)
     {
       millisLedOff = millis();
-      ledBelt->turnOff(ledNumOff);
+      //ledBelt->turnOff(ledNumOff);
+      strip2.setPixelColor(ledNumOff,OFF_COLOR);
+      strip2.show();
       if(ledNumOff == LEDS_SIDE_NUM - 1)
       {
         strip.setPixelColor(lapCount, strip.Color(0,0,0));
         strip.show();
         ledNumOn = 0;
-        offWipe = 0;
+        //offWipe = 0;
         lapCount++;
       }
       ledNumOff++;
@@ -480,23 +516,23 @@ void loop()
 uint8_t checkString(String toSend, uint8_t error)
 {
     if(toSend == "gateway_error"){
-        error |= 0x001;
+        error |= 0x01;
     }
     if(toSend == "gateway_error_reset"){
-        error &= ~0x001;
+        error &= ~0x01;
     }
     if(toSend == "gateway_power_error"){
-        error |= 0x010;
+        error |= 0x10;
     }
     if(toSend == "gateway_power_error_reset"){
-        error &= ~0x001;
+        error &= ~0x10;
     }
     if(toSend == "belt_plc_error"){
-        error |= 0x100;
+        error |= 2;
     }
     if(toSend == "belt_plc_error_reset"){
-        error &= ~0x100;
-        errorReset = 1;
+        error &= ~2;
+        beltErrorReset = 1;
     }
     if(toSend == "restart_system"){
         restart_mega();
@@ -519,24 +555,64 @@ void sendSerial(String data)
 }
 void restart_mega()
 {
-  delete ledTank,ledBelt;
+  //delete ledTank,ledBelt;
   asm volatile ("  jmp 0");
 }
-//void turnoffWipe_side(uint32_t c, uint8_t wait)
-//{
-//  for(uint8_t i = LEDS_SIDE_NUM; i > 0; i--){
-//    strip2.setPixelColor(i,c);
-//    strip2.show();
-//    delay(wait);
-//  }
-//  strip2.setPixelColor(0,c);
-//  strip2.show();
-//}
-//void colorWipe(uint32_t c, uint8_t wait) 
-//{
-//  for (uint8_t i = 0; i < LEDS_TANK_NUM; i++) {
-//    strip.setPixelColor(i, c);
-//    delay(wait);
-//  }
-//     strip.show();
-//}
+void beltError(uint8_t ledState, uint8_t errorCode)
+{
+  uint8_t leds;
+  if(ledState == 1)
+  {
+    leds = ledNumOn;
+  } 
+  else
+  {
+    leds = LEDS_SIDE_NUM;
+  }
+  Serial.print(errorCode);
+  if(errorCode & 0x02 == true)
+    {
+      
+      toggle = toggle? 0 : 1;
+      for(uint8_t k = 0;k <= leds; k++)
+      {
+        strip2.setPixelColor(k, toggle ? ERROR_COLOR : OFF_COLOR);
+      }
+      strip2.show();
+    }
+    if(beltErrorReset)
+    {
+      for(uint8_t k = 0;k <= leds; k++)
+      {
+        if(ledState == 1)
+        {
+          strip2.setPixelColor(k, strip2.Color(0,165,0));
+        }
+        else
+        {
+          strip2.setPixelColor(k, strip2.Color(0,0,0));
+        }
+      }
+      strip2.show();
+      beltErrorReset = 0;
+    }
+  
+}
+void turnoffWipe_side(uint32_t c, uint8_t wait)
+{
+  for(uint8_t i = LEDS_SIDE_NUM; i > 0; i--){
+    strip2.setPixelColor(i,c);
+    strip2.show();
+    delay(wait);
+  }
+  strip2.setPixelColor(0,c);
+  strip2.show();
+}
+void colorWipe(uint32_t c, uint8_t wait) 
+{
+  for (uint8_t i = 0; i < LEDS_TANK_NUM; i++) {
+    strip.setPixelColor(i, c);
+    delay(wait);
+  }
+     strip.show();
+}
