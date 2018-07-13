@@ -263,8 +263,6 @@ class TankLeds
 
 IRSensor irFront(IR_PIN_FRONT,  CAR_CLOSE,  CAR_AWAY, 500);
 IRSensor irEnd(IR_PIN_END,   CAR_CLOSE,  CAR_AWAY, 500);
-//SideLeds* ledBelt;
-//TankLeds* ledTank;
 SerialInfo serialData(1000);
 
 uint8_t startWipe;
@@ -341,7 +339,7 @@ void loop()
   }
   
   //comm_error & comm_power_error !
-  if(!gwError && !gwPowerError)
+  if(!gwError && !gwPowerError && !plcError)
   {
     if(startWipe == 0)
     {
@@ -385,7 +383,6 @@ void loop()
       {
         turnOnLeds = 0;
         ledNumOff = 0;
-        //startWipe = 0;
         ledsAreOn = 1;
         strip.setPixelColor(lapCount, TANK_COLOR);
         strip.show();
@@ -400,7 +397,7 @@ void loop()
     }
   }
   //beltPLCERROR + ledsAreOn //beltPLCERROR + ledsAreOff
-  if(millis() - millisBeltErrorFlash > BELT_FLASH_SPEED)
+  if((millis() - millisBeltErrorFlash > BELT_FLASH_SPEED) && (ledNumOn == 0 || ledNumOn == LEDS_SIDE_NUM))
   {
     millisBeltErrorFlash = millis();
     beltError(0);
@@ -498,6 +495,7 @@ void sendSerial(String data)
 }
 void restart_mega()
 {
+  free(inputCh);
   asm volatile ("  jmp 0");
 }
 void beltError(uint8_t ledState)
@@ -511,6 +509,10 @@ void beltError(uint8_t ledState)
   {
     leds = LEDS_SIDE_NUM;
   }
+//  Serial.print("LEDS: ");
+//  Serial.println(leds);
+//  Serial.print("NUMON: ");
+//  Serial.println(ledNumOn);
   if(plcError)
     {
       
@@ -519,27 +521,37 @@ void beltError(uint8_t ledState)
       {
         strip2.setPixelColor(k, toggle ? ERROR_COLOR : OFF_COLOR);
       }
+      for(uint8_t k = leds+1;k <= LEDS_SIDE_NUM; k++)
+      {
+        strip2.setPixelColor(k, OFF_COLOR);
+      }
       strip2.show();
     }
   if(beltErrorReset)
     {
+      
       for(uint8_t k = 0;k <= leds; k++)
       {
+        
         if(ledState == 1)
         {
-          strip2.setPixelColor(k, strip2.Color(0,165,0));
+          strip2.setPixelColor(k, SIDE_COLOR);
         }
         else
         {
           if(ledsAreOn)
           {
-            strip2.setPixelColor(k, strip2.Color(0,165,0));
+            strip2.setPixelColor(k, SIDE_COLOR);
           }
           else
           {
-            strip2.setPixelColor(k, strip2.Color(0,0,0));
+            strip2.setPixelColor(k, OFF_COLOR);
           }
         }
+      }
+      for(uint8_t k = leds+1;k <= LEDS_SIDE_NUM; k++)
+      {
+        strip2.setPixelColor(k, OFF_COLOR);
       }
       strip2.show();
       beltErrorReset = 0;
