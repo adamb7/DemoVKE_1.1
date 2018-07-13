@@ -164,7 +164,7 @@ void setup()
   outputString = "";
   error &= 0x00;
   ledNumOn = 0;
-  ledNumOff = 0;
+  ledNumOff = LEDS_SIDE_NUM;
   ledsAreOn = 0;
   inputCh = calloc(30,sizeof(char));
   Serial.begin(115200);
@@ -238,7 +238,7 @@ void loop()
       if(ledNumOn == (LEDS_SIDE_NUM - 1))
       {
         turnOnLeds = 0;
-        ledNumOff = 0;
+        ledNumOff = LEDS_SIDE_NUM;
         ledsAreOn = 1;
         strip.setPixelColor(lapCount, TANK_COLOR);
         strip.show();
@@ -268,7 +268,8 @@ void loop()
       millisLedOff = millis();
       strip2.setPixelColor(ledNumOff,OFF_COLOR);
       strip2.show();
-      if(ledNumOff == LEDS_SIDE_NUM - 1)
+      
+      if(ledNumOff ==  0)
       {
         strip.setPixelColor(lapCount, strip.Color(0,0,0));
         strip.show();
@@ -277,7 +278,8 @@ void loop()
         ledsAreOn = 0;
         lapCount++;
       }
-      ledNumOff++;
+      ledNumOff--;
+      
     }
   }
   if(lapCount == 6)
