@@ -26,6 +26,7 @@
 #define TANK_ERROR_FLASH_SPEED 500
 #define TANK_ERROR_DURATION 10
 #define BELT_FLASH_SPEED 500
+#define CAR_START_DELAY 2000
 
 
 #define ERROR_DELAY 1000
@@ -130,6 +131,8 @@ uint8_t lapCount;
 uint8_t tankErrorDuration;
 uint8_t beltErrorReset;
 uint8_t ledsAreOn;
+uint8_t startDelayOn;
+uint8_t startDelayOff;
 
 uint8_t gwError;
 uint8_t gwPowerError;
@@ -140,6 +143,7 @@ uint32_t millisLedOff;
 uint32_t millisTankFlash;
 uint32_t millisTankErrorFlash;
 uint32_t millisBeltErrorFlash;
+uint32_t millisDelay;
 
 String outputString;
 uint8_t error;
@@ -174,10 +178,13 @@ void setup()
   millisTankFlash = 0;
   millisTankErrorFlash = 0;
   millisBeltErrorFlash = 0;
+  millisDelay = 0;
   lapCount = 0;
   gwError = 0;
   gwPowerError = 0;
   plcError = 0;
+  startDelayOn = 0;
+  startDelayOff = 0;
   Serial.flush();
   delay(2000);
 }
@@ -202,8 +209,10 @@ void loop()
       startWipe = irFront.Update();
       if(startWipe)
       {
-        turnOnLeds = 1;
+        //turnOnLeds = 1;
         offWipe = 0;
+        startDelayOn = 1;
+        millisDelay = millis();
         //outputString = "positionManagement_0 ";
         //sendSerial(outputString);
         
@@ -215,9 +224,20 @@ void loop()
       if(offWipe)
       {
         startWipe = 0;
+        startDelayOff = 1;
+        millisDelay = millis();
         //outputString = "positionManagement_1 ";
         //sendSerial(outputString);
       }
+    }
+  }
+  //delay turn on 2mp
+  if(startDelayOn)
+  {
+    if(millis() - millisDelay > CAR_START_DELAY)
+    {
+      turnOnLeds = 1;
+      startDelayOn = 0;
     }
   }
   if(ledNumOn < LEDS_SIDE_NUM && turnOnLeds && lapCount < 6)
@@ -258,10 +278,17 @@ void loop()
     millisBeltErrorFlash = millis();
     beltError(0);
   }
+
+  //delay turnoff
+  if(startDelayOff)
+  {
+    if(millis() - millisDelay > CAR_START_DELAY)
+    {
+      startDelayOff = 0;
+    }
+  }  
   
-  
-  
-  if(ledNumOn == 60 && !turnOnLeds && offWipe && lapCount < 6)
+  if(ledNumOn == 60 && !turnOnLeds && offWipe && lapCount < 6 && !startDelayOff)
   {
     if(millis()- millisLedOff > SIDE_OFF_SPEED)
     {
