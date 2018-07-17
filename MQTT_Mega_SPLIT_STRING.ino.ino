@@ -3,6 +3,8 @@
  * Thomas Varnish (https://github.com/tvarnish), (https://www.instructables.com/member/Tango172)
  * Made as part of my MQTT Instructable - "How to use MQTT with the Raspberry Pi and ESP8266"
  */
+#define MQTT_KEEPALIVE 60 //60? 10? or IwiP -> 1.4????
+
 #include <ESP8266WiFi.h> // Enables the ESP8266 to connect to the local network (via WiFi)
 #include <PubSubClient.h> // Allows us to connect to, and publish to the MQTT broker
 
@@ -81,7 +83,7 @@ void setup() {
     Serial.print(".");
   }
   // Debugging - Output the IP Address of the ESP8266
-  //Serial.println("WiFi connected");
+  Serial.println("WiFi connected");
   //Serial.print("IP address: ");
   //Serial.println(WiFi.localIP());
 
@@ -106,18 +108,22 @@ void loop() {
       //Serial.println(WiFi.macAddress());
       client.loop();
       if(client.connected() == false){
+        Serial.println(client.state());
         while(client.connected() == false){
           //if(millis() - recon_millis > 1000){
               //recon_millis = millis();
+              
               client.connect(clientID, mqtt_username, mqtt_password);
-              Serial.println("no_connect");
+              Serial.print("no_connect");
+              Serial.println(client.state());
+              
             //}
           
           delay(50);
           //Serial.println("no_connect");
         }
           reSub(client);
-          //Serial.println("reconnected");
+          Serial.println("reconnected");
       }
       
       while(Serial.available() ) {
