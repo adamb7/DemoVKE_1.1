@@ -233,6 +233,10 @@ void loop()
       }
     }
   }
+  if(startWipe == 1 && offWipe == 1)
+  {
+    startWipe = 0;
+  }
   //delay turn on 2mp
   if(startDelayOn)
   {
@@ -252,7 +256,7 @@ void loop()
       if(tankError == 1 && ledNumOn == 30)
       {
         startTankError = 1;
-        tankError = 0;
+        //tankError = 0;
       }
       if(millis() - millisTankFlash > TANK_FLASH_SPEED)
       {
@@ -305,7 +309,7 @@ void loop()
     }
   }
   //beltPLCERROR + ledsAreOn //beltPLCERROR + ledsAreOff
-  if((millis() - millisBeltErrorFlash > BELT_FLASH_SPEED) && (ledNumOn == 0 || ledNumOn == LEDS_SIDE_NUM) && (startTankError == 0))
+  if((millis() - millisBeltErrorFlash > BELT_FLASH_SPEED) && (ledNumOn == 0 || ledNumOn == LEDS_SIDE_NUM) && (startTankError == 0) && (lapCount != 6))
   {
     millisBeltErrorFlash = millis();
     beltError(0);
