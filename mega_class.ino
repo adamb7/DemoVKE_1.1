@@ -38,6 +38,9 @@ Adafruit_NeoPixel strip2 = Adafruit_NeoPixel(LEDS_SIDE_NUM, LINE_PIN, NEO_GRB + 
 void turnoffWipe_side(uint32_t c, uint8_t wait);
 void colorWipe(uint32_t c, uint8_t wait);
 void restart_mega(void);
+void beltError(uint8_t ledState);
+void sendSerial(String data);
+uint8_t checkString(String toSend, uint8_t error);
 
 class IRSensor
 {
@@ -146,7 +149,7 @@ uint32_t millisTankErrorFlash;
 uint32_t millisBeltErrorFlash;
 uint32_t millisDelay;
 
-String outputString;
+//String outputString;
 uint8_t error;
 uint8_t ledNumOn;
 uint8_t ledNumOff;
@@ -167,8 +170,8 @@ void setup()
   turnOnLeds = 0;
   beltErrorReset = 0;
   toggle = 0;
-  outputString = "";
-  error &= 0x00;
+  //outputString = "";
+  error = 0;
   ledNumOn = 0;
   ledNumOff = LEDS_SIDE_NUM;
   ledsAreOn = 0;
@@ -215,8 +218,8 @@ void loop()
         offWipe = 0;
         startDelayOn = 1;
         millisDelay = millis();
-        //outputString = "positionManagement_0 ";
-        //sendSerial(outputString);
+        //outputString = "positionManagement.0.";
+        sendSerial("positionManagement.0.");
         
       }
     }
@@ -228,8 +231,8 @@ void loop()
         startWipe = 0;
         startDelayOff = 1;
         millisDelay = millis();
-        //outputString = "positionManagement_1 ";
-        //sendSerial(outputString);
+        //outputString = "positionManagement.1.";
+        sendSerial("positionManagement.1.");
       }
     }
   }
@@ -293,7 +296,7 @@ void loop()
         strip.show();
         if(tankErrorDuration == 10)
         {
-          sendSerial("no_liquid_error");
+          sendSerial("no_liquid_error.0.");
         }
         tankErrorDuration--;
         if(tankErrorDuration == 0)
@@ -303,7 +306,7 @@ void loop()
           strip.show();
           startTankError = 0;
           tankError = 0;
-          sendSerial("no_liquid_error_reset");
+          sendSerial("no_liquid_error_reset.0.");
         }
       }
     }
@@ -420,7 +423,7 @@ void sendSerial(String data)
   }
   data = "";
 }
-void restart_mega()
+void restart_mega(void)
 {
   free(inputCh);
   asm volatile ("  jmp 0");
