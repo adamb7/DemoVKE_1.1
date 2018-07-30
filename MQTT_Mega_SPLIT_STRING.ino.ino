@@ -24,7 +24,7 @@ IPAddress subnet(255,255,255,0);
 // Make sure to update this for your own MQTT Broker!
 const char* mqtt_server = "10.3.141.3";
 const char* mqtt_topic;
-const char* mqtt_message="mega";
+//const char* mqtt_message="mega";
 const char* mqtt_username = "user";
 const char* mqtt_password = "user";
 // The client id identifies the ESP8266 device. Think of it a bit like a hostname (Or just a name, like Greg).
@@ -80,10 +80,10 @@ void setup() {
 //      wl_millis = millis();
 //    }
     
-    Serial.print(".");
+    //Serial.print(".");
   }
   // Debugging - Output the IP Address of the ESP8266
-  Serial.println("WiFi connected");
+  //Serial.println("WiFi connected");
   //Serial.print("IP address: ");
   //Serial.println(WiFi.localIP());
 
@@ -92,7 +92,7 @@ void setup() {
 
   if (client.connect(clientID, mqtt_username, mqtt_password)) {
     reSub(client);
-    Serial.println("connect_ok");
+    //Serial.println("connect_ok");
     delay(100);
   }
   else {
@@ -108,14 +108,14 @@ void loop() {
       //Serial.println(WiFi.macAddress());
       client.loop();
       if(client.connected() == false){
-        Serial.println(client.state());
+        //Serial.println(client.state());
         while(client.connected() == false){
           //if(millis() - recon_millis > 1000){
               //recon_millis = millis();
               
               client.connect(clientID, mqtt_username, mqtt_password);
-              Serial.print("no_connect");
-              Serial.println(client.state());
+              //Serial.print("no_connect");
+              //Serial.println(client.state());
               
             //}
           
@@ -123,7 +123,7 @@ void loop() {
           //Serial.println("no_connect");
         }
           reSub(client);
-          Serial.println("reconnected");
+          //Serial.println("reconnected");
       }
       
       while(Serial.available() ) {
