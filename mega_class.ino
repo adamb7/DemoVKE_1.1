@@ -27,6 +27,7 @@
 #define TANK_ERROR_DURATION 30
 #define BELT_FLASH_SPEED 500
 #define CAR_START_DELAY 2000
+#define REFILL_SPEED 1000
 
 
 #define ERROR_DELAY 1000
@@ -141,6 +142,8 @@ uint8_t startDelayOff;
 uint8_t gwError;
 uint8_t gwPowerError;
 uint8_t plcError;
+uint8_t refillTank;
+uint8_t refillCounter;
 
 uint32_t millisLedOn;
 uint32_t millisLedOff;
@@ -148,6 +151,7 @@ uint32_t millisTankFlash;
 uint32_t millisTankErrorFlash;
 uint32_t millisBeltErrorFlash;
 uint32_t millisDelay;
+uint32_t millisRefill;
 
 //String outputString;
 uint8_t error;
@@ -184,10 +188,13 @@ void setup()
   millisTankErrorFlash = 0;
   millisBeltErrorFlash = 0;
   millisDelay = 0;
+  millisRefill = 0;
   lapCount = 0;
   gwError = 0;
   gwPowerError = 0;
   plcError = 0;
+  refillTank = 0;
+  refillCounter = 5;
   startDelayOn = 0;
   startDelayOff = 0;
   Serial.flush();
@@ -261,7 +268,7 @@ void loop()
         startTankError = 1;
         //tankError = 0;
       }
-      if(millis() - millisTankFlash > TANK_FLASH_SPEED)
+      if((millis() - millisTankFlash > TANK_FLASH_SPEED) && (refillTank == 0))
       {
         millisTankFlash = millis();
         toggle = toggle? 0 : 1;
@@ -306,8 +313,27 @@ void loop()
           strip.show();
           startTankError = 0;
           tankError = 0;
+          refillTank = 1;
           sendSerial("no_liquid_error_reset.0.");
         }
+      }
+    }
+  }
+  //refill tank after no_liquid_error
+  if(refillTank == 1)
+  {
+    if(millis() - millisRefill > REFILL_SPEED)
+    {
+      millisRefill = millis();
+      strip.setPixelColor(refillCounter, TANK_COLOR);
+      strip.show();
+      if(refillCounter == 0)
+      {
+        refillTank = 0;
+      }
+      else
+      {
+        refillCounter--;
       }
     }
   }
@@ -325,7 +351,7 @@ void loop()
     {
       startDelayOff = 0;
     }
-  }  
+  }
   
   if(ledNumOn == 60 && !turnOnLeds && offWipe && lapCount < 6 && !startDelayOff)
   {
@@ -337,8 +363,11 @@ void loop()
       
       if(ledNumOff ==  0)
       {
-        strip.setPixelColor(lapCount, strip.Color(0,0,0));
-        strip.show();
+        if(lapCount != 5)
+        {
+          strip.setPixelColor(lapCount, strip.Color(0,0,0));
+          strip.show();
+        }
         //startWipe = 0;
         ledNumOn = 0;
         ledsAreOn = 0;
@@ -350,36 +379,8 @@ void loop()
         }
       }
       ledNumOff--;
-      
     }
-  }
-//OLD TANK ERROR
-//  if(lapCount == 6)
-//  {
-//    //start tank error
-//    if(millis() - millisTankErrorFlash > TANK_ERROR_FLASH_SPEED)
-//    {
-//      millisTankErrorFlash = millis();
-//      toggle = toggle? 0 : 1;
-//      strip.setPixelColor(5, toggle? strip.Color(165,0,0) : strip.Color(0,0,0));
-//      strip.show();
-//      if(tankErrorDuration == 10)
-//      {
-//        sendSerial("no_liquid_error");
-//      }
-//      tankErrorDuration--;
-//      if(tankErrorDuration == 0)
-//      {
-//        lapCount++;
-//        strip.setPixelColor(5, strip.Color(0,0,0));
-//        strip.show();
-//        sendSerial("no_liquid_error_reset");
-//      }
-//    }
-//  }
-  //sendSerial(outputString);
-  //outputString = "";
-  
+  }  
 }
 //=========================================================================  
 uint8_t checkString(String toSend, uint8_t error)
@@ -415,7 +416,6 @@ uint8_t checkString(String toSend, uint8_t error)
 }
 void sendSerial(String data)
 {
-  //Serial.flush();
   if(data.length() > 0)
   {
     Serial.print(data);
@@ -486,7 +486,8 @@ void beltError(uint8_t ledState)
 }
 void turnoffWipe_side(uint32_t c, uint8_t wait)
 {
-  for(uint8_t i = LEDS_SIDE_NUM; i > 0; i--){
+  for(uint8_t i = LEDS_SIDE_NUM; i > 0; i--)
+  {
     strip2.setPixelColor(i,c);
     strip2.show();
     delay(wait);
@@ -496,7 +497,8 @@ void turnoffWipe_side(uint32_t c, uint8_t wait)
 }
 void colorWipe(uint32_t c, uint8_t wait) 
 {
-  for (uint8_t i = 0; i < LEDS_TANK_NUM; i++) {
+  for (uint8_t i = 0; i < LEDS_TANK_NUM; i++)
+  {
     strip.setPixelColor(i, c);
     delay(wait);
   }
