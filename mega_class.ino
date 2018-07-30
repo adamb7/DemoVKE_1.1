@@ -236,10 +236,10 @@ void loop()
       }
     }
   }
-  if(startWipe == 1 && offWipe == 1)
-  {
-    startWipe = 0;
-  }
+//  if(startWipe == 1 && offWipe == 1)
+//  {
+//    startWipe = 0;
+//  }
   //delay turn on 2mp
   if(startDelayOn)
   {
@@ -294,7 +294,7 @@ void loop()
         toggle = toggle? 0 : 1;
         strip.setPixelColor(5, toggle? strip.Color(165,0,0) : strip.Color(0,0,0));
         strip.show();
-        if(tankErrorDuration == 10)
+        if(tankErrorDuration == TANK_ERROR_DURATION)
         {
           sendSerial("no_liquid_error.0.");
         }
