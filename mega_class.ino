@@ -14,7 +14,6 @@
 #define CAR_AWAY  450
 #define LEDS_TANK_NUM 6
 #define LEDS_SIDE_NUM 60
-#define LAP_NUM 6
 #define ERR_RESET 15
 #define TANK_COLOR strip.Color(165,42,0)
 #define SIDE_COLOR strip2.Color(0,165,0)
@@ -153,7 +152,6 @@ uint32_t millisBeltErrorFlash;
 uint32_t millisDelay;
 uint32_t millisRefill;
 
-//String outputString;
 uint8_t error;
 uint8_t ledNumOn;
 uint8_t ledNumOff;
@@ -167,21 +165,21 @@ void setup()
   turnoffWipe_side(strip2.Color(0,0,0), 10);
   strip2.show();
   startWipe = 0;
-  tankErrorDuration = TANK_ERROR_DURATION;
   offWipe = 0;
-  tankError = 0;
-  startTankError = 0;
   turnOnLeds = 0;
-  beltErrorReset = 0;
-  toggle = 0;
-  //outputString = "";
-  error = 0;
+  lapCount = 0;
   ledNumOn = 0;
   ledNumOff = LEDS_SIDE_NUM;
   ledsAreOn = 0;
+  tankError = 0;
+  tankErrorDuration = TANK_ERROR_DURATION;
+  startTankError = 0;
+  beltErrorReset = 0;
+  
+  error = 0;
+  
   inputCh = calloc(30,sizeof(char));
-  Serial.begin(115200);
-  //Serial.println("START");  
+  Serial.begin(115200);  
   millisLedOn = 0;
   millisLedOff = 0;
   millisTankFlash = 0;
@@ -189,7 +187,6 @@ void setup()
   millisBeltErrorFlash = 0;
   millisDelay = 0;
   millisRefill = 0;
-  lapCount = 0;
   gwError = 0;
   gwPowerError = 0;
   plcError = 0;
@@ -197,6 +194,7 @@ void setup()
   refillCounter = 5;
   startDelayOn = 0;
   startDelayOff = 0;
+  toggle = 0;
   Serial.flush();
   delay(2000);
 }
@@ -205,11 +203,9 @@ void loop()
 {
 //=================================SERIAL================================
   serialData.Update(inputCh);
-  //Serial.print(inputCh);
   error = checkString(inputCh, error);
   if(inputCh[0] !=  '\0')
-  {
-    //Serial.println(inputCh);   
+  {   
     inputCh[0] = '\0';
   }
   
