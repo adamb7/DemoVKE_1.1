@@ -17,7 +17,7 @@
 // Make sure to update this for your own WiFi network!
 const char* ssid = "VKE_DEMO";
 const char* wifi_password = "IFKADemo";
-IPAddress local_ip(10,3,141,6); //.7)
+IPAddress local_ip(10,3,141,7); //.7)
 IPAddress gateway(10,3,141,1); //dns ugyanez
 IPAddress subnet(255,255,255,0);
 
@@ -29,7 +29,7 @@ const char* mqtt_topic;
 const char* mqtt_username = "user";
 const char* mqtt_password = "user";
 // The client id identifies the ESP8266 device. Think of it a bit like a hostname (Or just a name, like Greg).
-const char* clientID = "loszar";
+const char* clientID = "mega";
 const int mqtt_port = 1883;
 char incomingByte;
 String toSend;
