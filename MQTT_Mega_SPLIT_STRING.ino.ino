@@ -17,7 +17,7 @@
 // Make sure to update this for your own WiFi network!
 const char* ssid = "VKE_DEMO";
 const char* wifi_password = "IFKADemo";
-IPAddress local_ip(10,3,141,7); //.7)
+IPAddress local_ip(10,3,141,6); //.7)
 IPAddress gateway(10,3,141,1); //dns ugyanez
 IPAddress subnet(255,255,255,0);
 
@@ -29,7 +29,7 @@ const char* mqtt_topic;
 const char* mqtt_username = "user";
 const char* mqtt_password = "user";
 // The client id identifies the ESP8266 device. Think of it a bit like a hostname (Or just a name, like Greg).
-const char* clientID = "mega";
+const char* clientID = "loszar";
 const int mqtt_port = 1883;
 char incomingByte;
 String toSend;
@@ -72,8 +72,9 @@ void setup() {
   //delay(2000);
   //Serial.print("Connecting to ");
   //Serial.println(ssid);
-  WiFi.begin(ssid, wifi_password);
   WiFi.config(local_ip,gateway,subnet,gateway,gateway);
+  WiFi.begin(ssid, wifi_password);
+  
   //pinMode(INT_PIN,OUTPUT);
   //digitalWrite(INT_PIN, 1);
   //ESP.wdtEnable(1000);
@@ -87,8 +88,8 @@ void setup() {
 //          }
 //        }
 //    }
-  //while (WiFi.status() != WL_CONNECTED) {
-    //delay(500);
+  while (WiFi.status() != WL_CONNECTED) {
+    delay(500);
     //ESP.wdtFeed();
     //Serial.print("loszar");
     //Serial.print("millis: ");
@@ -100,8 +101,8 @@ void setup() {
 //      wl_millis = millis();
 //    }
     
-    //Serial.print(".");
-  //}
+    Serial.print(".");
+  }
   // Debugging - Output the IP Address of the ESP8266
   Serial.println("WiFi connected");
   //Serial.print("IP address: ");
@@ -110,12 +111,12 @@ void setup() {
   client.setServer(mqtt_server,mqtt_port);
   client.setCallback(callback);
 
-//  if (client.connect(clientID, mqtt_username, mqtt_password)) 
-//  {
-//    reSub(client);
+  if (client.connect(clientID, mqtt_username, mqtt_password)) 
+  {
+    reSub(client);
 //    //Serial.println("connect_ok");
 //    //delay(100);
-//  }
+  }
   //else {
     //Serial.println("Connection to MQTT Broker failed...");
   //}
@@ -128,86 +129,86 @@ void setup() {
 void loop() {
       //Serial.println(WiFi.macAddress());
       client.loop();
-      timeNow = millis();
-      
-      
-      if(timeNow - millisWifi > delayWifi && wifiFlag == 0)
-      {
-        millisWifi = millis();
-        if(WiFi.status() != WL_CONNECTED)
-        {
-          Serial.println("wifi connecting...");
-          errorFlag = 0;
-        }
-        else
-        {
-          Serial.println("wifi ok!");
-          wifiFlag = 1;
-          client.connect(clientID, mqtt_username, mqtt_password);
-          reSub(client);
-        }
-      }
-      
-      if(timeNow - millisRecon > delayRecon && wifiFlag == 1 && errorFlag == 1)
-      {
-        millisRecon = millis();
-        //Serial.println("debug");
-        if(client.connected() == false)
-        {
-          Serial.println("no_connect");
-          client.connect(clientID, mqtt_username, mqtt_password);
-        }
-        if(client.connected() == true)
-        {
-          Serial.println("reconnected");
-          reSub(client);
-          errorFlag = 0;
-          
-        }
-        if(WiFi.status() != WL_CONNECTED)
-        {
-          Serial.println("wifi_lost!");
-          wifiFlag = 0;
-        }
-      }
-
-      if(timeNow - millisFlag > delayRecon && wifiFlag == 1 && errorFlag == 0)
-      {
-        millisFlag = millis();
-        if(WiFi.status() != WL_CONNECTED)
-        {
-          Serial.println("wifi_lost!");
-          wifiFlag = 0;
-        }
-        if(client.connected() == false)
-        {
-          Serial.println("connect_lost!");
-          errorFlag = 1;
-        }
-      }
-      
-//      if(client.connected() == false){
-//        while(client.connected() == false){
-//          //if(timeNow - recon_millis > loszar){
-//              //recon_millis = millis();
-//              
-//              client.connect(clientID, mqtt_username, mqtt_password);
-//              //if(error_flag == 1)
-//              //{
-//                //error_flag = 0;
-//                Serial.print("no_connect");
-//                Serial.println(client.state());
-//              //}
-//            //}
-//          
-//          delay(50);
-//          //ESP.wdtFeed();
-//          //Serial.println("no_connect");
-//          //}
+//      timeNow = millis();
+//      
+//      
+//      if(timeNow - millisWifi > delayWifi && wifiFlag == 0)
+//      {
+//        millisWifi = millis();
+//        if(WiFi.status() != WL_CONNECTED)
+//        {
+//          Serial.println("wifi connecting...");
+//          errorFlag = 0;
 //        }
+//        else
+//        {
+//          Serial.println("wifi ok!");
+//          wifiFlag = 1;
+//          client.connect(clientID, mqtt_username, mqtt_password);
 //          reSub(client);
-//          Serial.println("reconnected");
+//        }
 //      }
+//      
+//      if(timeNow - millisRecon > delayRecon && wifiFlag == 1 && errorFlag == 1)
+//      {
+//        millisRecon = millis();
+//        //Serial.println("debug");
+//        if(client.connected() == false)
+//        {
+//          Serial.println("no_connect");
+//          client.connect(clientID, mqtt_username, mqtt_password);
+//        }
+//        if(client.connected() == true)
+//        {
+//          Serial.println("reconnected");
+//          reSub(client);
+//          errorFlag = 0;
+//          
+//        }
+//        if(WiFi.status() != WL_CONNECTED)
+//        {
+//          Serial.println("wifi_lost!");
+//          wifiFlag = 0;
+//        }
+//      }
+//
+//      if(timeNow - millisFlag > delayRecon && wifiFlag == 1 && errorFlag == 0)
+//      {
+//        millisFlag = millis();
+//        if(WiFi.status() != WL_CONNECTED)
+//        {
+//          Serial.println("wifi_lost!");
+//          wifiFlag = 0;
+//        }
+//        if(client.connected() == false)
+//        {
+//          Serial.println("connect_lost!");
+//          errorFlag = 1;
+//        }
+//      }
+      
+      if(client.connected() == false){
+        while(client.connected() == false){
+          //if(timeNow - recon_millis > loszar){
+              //recon_millis = millis();
+              
+              client.connect(clientID, mqtt_username, mqtt_password);
+              //if(error_flag == 1)
+              //{
+                //error_flag = 0;
+                Serial.print("no_connect");
+                Serial.println(client.state());
+              //}
+            //}
+          
+          delay(50);
+          //ESP.wdtFeed();
+          //Serial.println("no_connect");
+          //}
+        }
+          reSub(client);
+          Serial.println("reconnected");
+      }
       
       while(Serial.available() ) {
         incomingByte = Serial.read();
@@ -227,7 +228,7 @@ void loop() {
                     //millisRecon = millis();
                     client.connect(clientID, mqtt_username, mqtt_password);
                   //}
-                //delay(50);
+                delay(50);
               }
             //client.connect(clientID, mqtt_username, mqtt_password);
             //delay(50);
