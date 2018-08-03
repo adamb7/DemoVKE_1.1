@@ -27,6 +27,7 @@
 #define BELT_FLASH_SPEED 500
 #define CAR_START_DELAY 2000
 #define REFILL_SPEED 1000
+#define ERROR_DELAY 2000
 
 Adafruit_NeoPixel strip = Adafruit_NeoPixel(LEDS_TANK_NUM, TANK_PIN, NEO_GRB + NEO_KHZ800);
 Adafruit_NeoPixel strip2 = Adafruit_NeoPixel(LEDS_SIDE_NUM, LINE_PIN, NEO_GRB + NEO_KHZ800);
@@ -141,6 +142,8 @@ uint32_t millisTankErrorFlash;
 uint32_t millisBeltErrorFlash;
 uint32_t millisDelay;
 uint32_t millisRefill;
+uint32_t millisPlcErrorDelay;
+uint32_t millisTankErrorDelay;
 uint8_t gwError;
 uint8_t gwPowerError;
 uint8_t plcError;
@@ -177,6 +180,8 @@ void setup()
   millisBeltErrorFlash = 0;
   millisDelay = 0;
   millisRefill = 0;
+  millisPlcErrorDelay = 0;
+  millisTankErrorDelay = 0;
   gwError = 0;
   gwPowerError = 0;
   plcError = 0;
@@ -244,7 +249,7 @@ void loop()
   }
   if(ledNumOn < LEDS_SIDE_NUM && turnOnLeds && lapCount < 6)
   {
-    if((millis() - millisLedOn > SIDE_ON_SPEED) && (plcError == 0) && (startTankError == 0))
+    if((millis() - millisLedOn > SIDE_ON_SPEED) && (plcError == 0) && (startTankError == 0) && (gwError == 0) && (gwPowerError == 0))
     {
       millisLedOn = millis();
       strip2.setPixelColor(ledNumOn,SIDE_COLOR);
@@ -252,6 +257,7 @@ void loop()
       if(tankError == 1 && ledNumOn == 30)
       {
         startTankError = 1;
+        millisTankErrorDelay = millis();
         //tankError = 0;
       }
       if((millis() - millisTankFlash > TANK_FLASH_SPEED) && (refillTank == 0))
@@ -281,29 +287,38 @@ void loop()
     //start tank error
     if(startTankError == 1)
     {
-      if(millis() - millisTankErrorFlash > TANK_ERROR_FLASH_SPEED)
+      if(millis() - millisTankErrorDelay > ERROR_DELAY)
       {
-        millisTankErrorFlash = millis();
-        toggle = toggle? 0 : 1;
-        strip.setPixelColor(5, toggle? TANK_ERROR_COLOR : TANK_OFF_COLOR);
-        strip.show();
-        if(tankErrorDuration == TANK_ERROR_DURATION)
+      
+        if(millis() - millisTankErrorFlash > TANK_ERROR_FLASH_SPEED)
         {
-          sendSerial("no_liquid_error.0.");
-        }
-        tankErrorDuration--;
-        if(tankErrorDuration == 0)
-        {
-          //lapCount++;
-          strip.setPixelColor(5, TANK_OFF_COLOR);
+          millisTankErrorFlash = millis();
+          toggle = toggle? 0 : 1;
+          strip.setPixelColor(5, toggle? TANK_ERROR_COLOR : TANK_OFF_COLOR);
           strip.show();
-          startTankError = 0;
-          tankError = 0;
-          refillTank = 1;
-          sendSerial("no_liquid_error_reset.0.");
+          if(tankErrorDuration == TANK_ERROR_DURATION)
+          {
+            sendSerial("no_liquid_error.0.");
+          }
+          tankErrorDuration--;
+          if(tankErrorDuration == 0)
+          {
+            //lapCount++;
+            strip.setPixelColor(5, TANK_OFF_COLOR);
+            strip.show();
+            startTankError = 0;
+            tankError = 0;
+            refillTank = 1;
+            sendSerial("no_liquid_error_reset.0.");
+          }
         }
       }
-    }
+      else
+      {
+        strip.setPixelColor(5, TANK_ERROR_COLOR);
+        strip.show();
+      }
+   }
   }
   //refill tank after no_liquid_error
   if(refillTank == 1)
@@ -366,7 +381,7 @@ void loop()
       }
       ledNumOff--;
     }
-  }  
+  }
 }
 //=========================================================================  
 void checkString(String toSend)
@@ -390,6 +405,7 @@ void checkString(String toSend)
     if(toSend == "belt_plc_error")
     {
         plcError = 1;
+        millisPlcErrorDelay = millis();
     }
     if(toSend == "belt_plc_error_reset")
     {
@@ -422,24 +438,38 @@ void beltError(uint8_t ledState)
   if(ledState == 1)
   {
     leds = ledNumOn;
-  } 
+  }
   else
   {
     leds = LEDS_SIDE_NUM;
   }
   if(plcError)
     {
-      
-      toggle = toggle? 0 : 1;
-      for(uint8_t k = 0;k <= leds; k++)
+      if(millis() - millisPlcErrorDelay > ERROR_DELAY)
       {
-        strip2.setPixelColor(k, toggle ? SIDE_ERROR_COLOR : SIDE_OFF_COLOR);
+        toggle = toggle? 0 : 1;
+        for(uint8_t k = 0;k <= leds; k++)
+        {
+          strip2.setPixelColor(k, toggle ? SIDE_ERROR_COLOR : SIDE_OFF_COLOR);
+        }
+        for(uint8_t k = leds+1;k <= LEDS_SIDE_NUM; k++)
+        {
+          strip2.setPixelColor(k, SIDE_OFF_COLOR);
+        }
+        strip2.show();
       }
-      for(uint8_t k = leds+1;k <= LEDS_SIDE_NUM; k++)
+      else
       {
-        strip2.setPixelColor(k, SIDE_OFF_COLOR);
+        for(uint8_t k = 0;k <= leds; k++)
+        {
+          strip2.setPixelColor(k, SIDE_ERROR_COLOR);
+        }
+        for(uint8_t k = leds+1;k <= LEDS_SIDE_NUM; k++)
+        {
+          strip2.setPixelColor(k, SIDE_OFF_COLOR);
+        }
+        strip2.show();
       }
-      strip2.show();
     }
   if(beltErrorReset)
     {
