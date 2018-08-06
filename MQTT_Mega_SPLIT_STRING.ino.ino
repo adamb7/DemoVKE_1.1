@@ -17,7 +17,7 @@
 // Make sure to update this for your own WiFi network!
 const char* ssid = "VKE_DEMO";
 const char* wifi_password = "IFKADemo";
-IPAddress local_ip(10,3,141,7); //.7)
+IPAddress local_ip(10,3,141,6); //.7)
 IPAddress gateway(10,3,141,1); //dns ugyanez
 IPAddress subnet(255,255,255,0);
 
@@ -29,7 +29,7 @@ const char* mqtt_topic;
 const char* mqtt_username = "user";
 const char* mqtt_password = "user";
 // The client id identifies the ESP8266 device. Think of it a bit like a hostname (Or just a name, like Greg).
-const char* clientID = "mega";
+const char* clientID = "loszar";
 const int mqtt_port = 1883;
 char incomingByte;
 String toSend;
@@ -196,14 +196,18 @@ void loop() {
               //if(error_flag == 1)
               //{
                 //error_flag = 0;
-                Serial.print("no_connect");
-                Serial.println(client.state());
+                //Serial.print("no_connect");
+                //Serial.println(client.state());
               //}
             //}
           
           delay(50);
           //ESP.wdtFeed();
-          //Serial.println("no_connect");
+          if(WiFi.status() != WL_CONNECTED)
+          {Serial.println("no wifi");}
+          else
+          {Serial.println("no_connect");}
+          
           //}
         }
           reSub(client);
@@ -252,16 +256,17 @@ void callback(char* topic, byte* payload, unsigned int length) {
     //Serial.println(length);
     Serial.print((char)payload[i]);
   }
-}  
+}
 void reSub(PubSubClient client){
-    client.subscribe("go_to_sleep");
-    client.subscribe("start_system");
-    client.subscribe("restart_system");
-    client.subscribe("gateway_error");
-    client.subscribe("gateway_error_reset");
-    client.subscribe("gateway_power_error");
-    client.subscribe("gateway_power_error_reset");
-    client.subscribe("belt_plc_error");
-    client.subscribe("belt_plc_error_reset");
+    client.subscribe("go_to_sleep",1);
+    client.subscribe("start_system",1);
+    client.subscribe("restart_system",1);
+    client.subscribe("gateway_error",1);
+    client.subscribe("gateway_error_reset",1);
+    client.subscribe("gateway_power_error",1);
+    client.subscribe("gateway_power_error_reset",1);
+    client.subscribe("belt_plc_error",1);
+    client.subscribe("belt_plc_error_reset",1);
+    client.subscribe("console",1);
   }
 
