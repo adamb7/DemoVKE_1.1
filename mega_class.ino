@@ -155,7 +155,7 @@ uint8_t refillCounter;
 uint8_t startDelayOn;
 uint8_t startDelayOff;
 uint8_t toggle;
-void setup() 
+void setup()
 {
   strip.begin();
   strip2.begin();
