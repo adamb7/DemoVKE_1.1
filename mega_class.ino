@@ -147,6 +147,9 @@ uint32_t millisTankErrorDelay;
 uint8_t gwError;
 uint8_t gwPowerError;
 uint8_t plcError;
+uint8_t paused;
+uint8_t systemHalt;
+uint8_t ledsAllOff;
 uint8_t refillTank;
 uint8_t refillCounter;
 uint8_t startDelayOn;
@@ -185,6 +188,9 @@ void setup()
   gwError = 0;
   gwPowerError = 0;
   plcError = 0;
+  paused = 0;
+  systemHalt = 0;
+  ledsAllOff = 0;
   refillTank = 0;
   refillCounter = 5;
   startDelayOn = 0;
@@ -203,189 +209,208 @@ void loop()
   {   
     inputCh[0] = '\0';
   }
-  
-  //comm_error & comm_power_error !
-  if(!gwError && !gwPowerError && !plcError && !startTankError)
+//==================================IR SENSOR============================
+  if(systemHalt == 0)
   {
-    if(startWipe == 0)
+    if(paused == 0)
     {
-      startWipe = irFront.Update();
-      if(startWipe)
+      //comm_error & comm_power_error !
+      if(!gwError && !gwPowerError && !plcError && !startTankError)
       {
-        //turnOnLeds = 1;
-        offWipe = 0;
-        startDelayOn = 1;
-        millisDelay = millis();
-        //outputString = "positionManagement.0.";
-        sendSerial("positionManagement.0.");
-        
-      }
-    }
-    if(offWipe == 0)
-    {
-      offWipe = irEnd.Update();
-      if(offWipe)
-      {
-        startWipe = 0;
-        startDelayOff = 1;
-        millisDelay = millis();
-        //outputString = "positionManagement.1.";
-        sendSerial("positionManagement.1.");
-      }
-    }
-  }
-//  if(startWipe == 1 && offWipe == 1)
-//  {
-//    startWipe = 0;
-//  }
-  //delay turn on 2mp
-  if(startDelayOn)
-  {
-    if(millis() - millisDelay > CAR_START_DELAY)
-    {
-      turnOnLeds = 1;
-      startDelayOn = 0;
-    }
-  }
-  if(ledNumOn < LEDS_SIDE_NUM && turnOnLeds && lapCount < 6)
-  {
-    if((millis() - millisLedOn > SIDE_ON_SPEED) && (plcError == 0) && (startTankError == 0) && (gwError == 0) && (gwPowerError == 0))
-    {
-      millisLedOn = millis();
-      strip2.setPixelColor(ledNumOn,SIDE_COLOR);
-      strip2.show();
-      if(tankError == 1 && ledNumOn == 30)
-      {
-        startTankError = 1;
-        millisTankErrorDelay = millis();
-        //tankError = 0;
-      }
-      if((millis() - millisTankFlash > TANK_FLASH_SPEED) && (refillTank == 0))
-      {
-        millisTankFlash = millis();
-        toggle = toggle? 0 : 1;
-        strip.setPixelColor(lapCount, toggle? TANK_COLOR : TANK_OFF_COLOR);
-        strip.show();
-      }
-      //ledAllOn
-      if(ledNumOn == (LEDS_SIDE_NUM - 1))
-      {
-        turnOnLeds = 0;
-        ledNumOff = LEDS_SIDE_NUM;
-        ledsAreOn = 1;
-        strip.setPixelColor(lapCount, TANK_COLOR);
-        strip.show();
-      }
-      ledNumOn++;
-    }
-    //beltPLCERROR + ledTurnOn
-    if((millis()- millisBeltErrorFlash > BELT_FLASH_SPEED) && (startTankError == 0))
-    {
-      millisBeltErrorFlash = millis();
-      beltError(1);
-    }
-    //start tank error
-    if(startTankError == 1)
-    {
-      if(millis() - millisTankErrorDelay > ERROR_DELAY)
-      {
-      
-        if(millis() - millisTankErrorFlash > TANK_ERROR_FLASH_SPEED)
+        if(startWipe == 0)
         {
-          millisTankErrorFlash = millis();
-          toggle = toggle? 0 : 1;
-          strip.setPixelColor(5, toggle? TANK_ERROR_COLOR : TANK_OFF_COLOR);
-          strip.show();
-          if(tankErrorDuration == TANK_ERROR_DURATION)
+          startWipe = irFront.Update();
+          if(startWipe)
           {
-            sendSerial("no_liquid_error.0.");
+            //turnOnLeds = 1;
+            offWipe = 0;
+            startDelayOn = 1;
+            millisDelay = millis();
+            //outputString = "positionManagement.0.";
+            sendSerial("positionManagement.0.");
+            
           }
-          tankErrorDuration--;
-          if(tankErrorDuration == 0)
+        }
+        if(offWipe == 0)
+        {
+          offWipe = irEnd.Update();
+          if(offWipe)
           {
-            //lapCount++;
-            strip.setPixelColor(5, TANK_OFF_COLOR);
+            startWipe = 0;
+            startDelayOff = 1;
+            millisDelay = millis();
+            //outputString = "positionManagement.1.";
+            sendSerial("positionManagement.1.");
+          }
+        }
+      }
+  //==================================LEDS===============================
+    //  if(startWipe == 1 && offWipe == 1)
+    //  {
+    //    startWipe = 0;
+    //  }
+      //delay turn on 2mp
+      if(startDelayOn)
+      {
+        if(millis() - millisDelay > CAR_START_DELAY)
+        {
+          turnOnLeds = 1;
+          startDelayOn = 0;
+        }
+      }
+      if(ledNumOn < LEDS_SIDE_NUM && turnOnLeds && lapCount < 6)
+      {
+        if((millis() - millisLedOn > SIDE_ON_SPEED) && (plcError == 0) && (startTankError == 0) && (gwError == 0) && (gwPowerError == 0))
+        {
+          millisLedOn = millis();
+          strip2.setPixelColor(ledNumOn,SIDE_COLOR);
+          strip2.show();
+          if(tankError == 1 && ledNumOn == 30)
+          {
+            startTankError = 1;
+            millisTankErrorDelay = millis();
+            //tankError = 0;
+          }
+          if((millis() - millisTankFlash > TANK_FLASH_SPEED) && (refillTank == 0))
+          {
+            millisTankFlash = millis();
+            toggle = toggle? 0 : 1;
+            strip.setPixelColor(lapCount, toggle? TANK_COLOR : TANK_OFF_COLOR);
             strip.show();
-            startTankError = 0;
-            tankError = 0;
-            refillTank = 1;
-            sendSerial("no_liquid_error_reset.0.");
+          }
+          //ledAllOn
+          if(ledNumOn == (LEDS_SIDE_NUM - 1))
+          {
+            turnOnLeds = 0;
+            ledNumOff = LEDS_SIDE_NUM;
+            ledsAreOn = 1;
+            strip.setPixelColor(lapCount, TANK_COLOR);
+            strip.show();
+          }
+          ledNumOn++;
+        }
+        //beltPLCERROR + ledTurnOn
+        if((millis()- millisBeltErrorFlash > BELT_FLASH_SPEED) && (startTankError == 0))
+        {
+          millisBeltErrorFlash = millis();
+          beltError(1);
+        }
+        //start tank error
+        if(startTankError == 1)
+        {
+          if(millis() - millisTankErrorDelay > ERROR_DELAY)
+          {
+          
+            if(millis() - millisTankErrorFlash > TANK_ERROR_FLASH_SPEED)
+            {
+              millisTankErrorFlash = millis();
+              toggle = toggle? 0 : 1;
+              strip.setPixelColor(5, toggle? TANK_ERROR_COLOR : TANK_OFF_COLOR);
+              strip.show();
+              if(tankErrorDuration == TANK_ERROR_DURATION)
+              {
+                sendSerial("no_liquid_error.0.");
+              }
+              tankErrorDuration--;
+              if(tankErrorDuration == 0)
+              {
+                //lapCount++;
+                strip.setPixelColor(5, TANK_OFF_COLOR);
+                strip.show();
+                startTankError = 0;
+                tankError = 0;
+                refillTank = 1;
+                sendSerial("no_liquid_error_reset.0.");
+              }
+            }
+          }
+          else
+          {
+            strip.setPixelColor(5, TANK_ERROR_COLOR);
+            strip.show();
+          }
+       }
+      }
+      //refill tank after no_liquid_error
+      if(refillTank == 1)
+      {
+        if(millis() - millisRefill > REFILL_SPEED)
+        {
+          millisRefill = millis();
+          strip.setPixelColor(refillCounter, TANK_COLOR);
+          strip.show();
+          if(refillCounter == 0)
+          {
+            refillTank = 0;
+          }
+          else
+          {
+            refillCounter--;
           }
         }
       }
-      else
+      //beltPLCERROR + ledsAreOn //beltPLCERROR + ledsAreOff
+      if((millis() - millisBeltErrorFlash > BELT_FLASH_SPEED) && (ledNumOn == 0 || ledNumOn == LEDS_SIDE_NUM) && (startTankError == 0) && (lapCount != 6))
       {
-        strip.setPixelColor(5, TANK_ERROR_COLOR);
-        strip.show();
+        millisBeltErrorFlash = millis();
+        beltError(0);
       }
-   }
-  }
-  //refill tank after no_liquid_error
-  if(refillTank == 1)
-  {
-    if(millis() - millisRefill > REFILL_SPEED)
-    {
-      millisRefill = millis();
-      strip.setPixelColor(refillCounter, TANK_COLOR);
-      strip.show();
-      if(refillCounter == 0)
+    
+      //delay turnoff
+      if(startDelayOff)
       {
-        refillTank = 0;
+        if(millis() - millisDelay > CAR_START_DELAY)
+        {
+          startDelayOff = 0;
+        }
       }
-      else
-      {
-        refillCounter--;
-      }
-    }
-  }
-  //beltPLCERROR + ledsAreOn //beltPLCERROR + ledsAreOff
-  if((millis() - millisBeltErrorFlash > BELT_FLASH_SPEED) && (ledNumOn == 0 || ledNumOn == LEDS_SIDE_NUM) && (startTankError == 0) && (lapCount != 6))
-  {
-    millisBeltErrorFlash = millis();
-    beltError(0);
-  }
-
-  //delay turnoff
-  if(startDelayOff)
-  {
-    if(millis() - millisDelay > CAR_START_DELAY)
-    {
-      startDelayOff = 0;
-    }
-  }
-  
-  if(ledNumOn == 60 && !turnOnLeds && offWipe && lapCount < 6 && !startDelayOff)
-  {
-    if(millis()- millisLedOff > SIDE_OFF_SPEED)
-    {
-      millisLedOff = millis();
-      strip2.setPixelColor(ledNumOff,SIDE_OFF_COLOR);
-      strip2.show();
       
-      if(ledNumOff ==  0)
+      if(ledNumOn == 60 && !turnOnLeds && offWipe && lapCount < 6 && !startDelayOff)
       {
-        if(lapCount != 5)
+        if(millis()- millisLedOff > SIDE_OFF_SPEED)
         {
-          strip.setPixelColor(lapCount, TANK_OFF_COLOR);
-          strip.show();
-        }
-        //startWipe = 0;
-        ledNumOn = 0;
-        ledsAreOn = 0;
-        lapCount++;
-        //NEW TANK ERROR
-        if(lapCount == 5)
-        {
-          tankError = 1;
+          millisLedOff = millis();
+          strip2.setPixelColor(ledNumOff,SIDE_OFF_COLOR);
+          strip2.show();
+          
+          if(ledNumOff ==  0)
+          {
+            if(lapCount != 5)
+            {
+              strip.setPixelColor(lapCount, TANK_OFF_COLOR);
+              strip.show();
+            }
+            //startWipe = 0;
+            ledNumOn = 0;
+            ledsAreOn = 0;
+            lapCount++;
+            //NEW TANK ERROR
+            if(lapCount == 5)
+            {
+              tankError = 1;
+            }
+          }
+          ledNumOff--;
         }
       }
-      ledNumOff--;
+    }
+  }
+  else
+  {
+    //turn off leds
+    if(ledsAllOff == 0)
+    {
+      colorWipe(TANK_OFF_COLOR, 20);
+      turnoffWipe_side(SIDE_OFF_COLOR, 10);
+      ledsAllOff = 1;
     }
   }
 }
 //=========================================================================  
 void checkString(String toSend)
 {
+  if(systemHalt == 0)
+  {
     if(toSend == "gateway_error")
     {
         gwError = 1;
@@ -416,7 +441,25 @@ void checkString(String toSend)
     {
         restart_mega();
     }
-    return;
+    if(toSend == "stop")
+    {
+      paused = 1;
+    }
+    if(toSend == "start")
+    {
+      paused = 0;
+    }
+  }
+  if(toSend == "stop_system")
+  {
+    systemHalt = 1;
+  }
+  if(toSend == "start_system")
+  {
+    //systemHalt = 0;
+    restart_mega();
+  }
+  return;
 }
 void sendSerial(String data)
 {
