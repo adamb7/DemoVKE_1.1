@@ -12,6 +12,7 @@
 #define INT_PIN 12
 #define RECONNECT_SPEED 50
 #define WIFI_RECONNECT_SPEED 500
+#define DEBUG_FLAG 0
 
 // WiFi
 // Make sure to update this for your own WiFi network!
@@ -100,18 +101,18 @@ void setup() {
 //      Serial.println(millis() - wl_millis);
 //      wl_millis = millis();
 //    }
-    
-    Serial.print(".");
+
+    if(DEBUG_FLAG == 1) Serial.print(".");
   }
   // Debugging - Output the IP Address of the ESP8266
-  Serial.println("WiFi connected");
+  if(DEBUG_FLAG == 1) Serial.println("WiFi connected");
   //Serial.print("IP address: ");
   //Serial.println(WiFi.localIP());
 
   client.setServer(mqtt_server,mqtt_port);
   client.setCallback(callback);
 
-  if (client.connect(clientID, mqtt_username, mqtt_password)) 
+  if (client.connect(clientID, mqtt_username, mqtt_password, 1)) 
   {
     reSub(client);
 //    //Serial.println("connect_ok");
@@ -192,7 +193,7 @@ void loop() {
           //if(timeNow - recon_millis > loszar){
               //recon_millis = millis();
               
-              client.connect(clientID, mqtt_username, mqtt_password);
+              client.connect(clientID, mqtt_username, mqtt_password, 0);
               //if(error_flag == 1)
               //{
                 //error_flag = 0;
@@ -203,15 +204,18 @@ void loop() {
           
           delay(50);
           //ESP.wdtFeed();
-          if(WiFi.status() != WL_CONNECTED)
-          {Serial.println("no wifi");}
-          else
-          {Serial.println("no_connect");}
+          if(DEBUG_FLAG == 1)
+          {
+            if(WiFi.status() != WL_CONNECTED)
+            {Serial.println("no wifi");}
+            else
+            {Serial.println("no_connect");}
+          }
           
           //}
         }
           reSub(client);
-          Serial.println("reconnected");
+          if(DEBUG_FLAG == 1) Serial.println("reconnected");
       }
       
       while(Serial.available() ) {
@@ -230,7 +234,7 @@ void loop() {
              while(client.publish((const char*)pch,(const char*)pch_num) == false){
                 //if(millis() - recon_millis > 1000){
                     //millisRecon = millis();
-                    client.connect(clientID, mqtt_username, mqtt_password);
+                    client.connect(clientID, mqtt_username, mqtt_password, 0);
                   //}
                 delay(50);
               }
@@ -260,6 +264,7 @@ void callback(char* topic, byte* payload, unsigned int length) {
 void reSub(PubSubClient client){
     client.subscribe("go_to_sleep",1);
     client.subscribe("start_system",1);
+    client.subscribe("stop_system",1);
     client.subscribe("restart_system",1);
     client.subscribe("gateway_error",1);
     client.subscribe("gateway_error_reset",1);
