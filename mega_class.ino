@@ -33,7 +33,7 @@ Adafruit_NeoPixel strip = Adafruit_NeoPixel(LEDS_TANK_NUM, TANK_PIN, NEO_GRB + N
 Adafruit_NeoPixel strip2 = Adafruit_NeoPixel(LEDS_SIDE_NUM, LINE_PIN, NEO_GRB + NEO_KHZ800);
 
 //======================================================================================================
-void sideLedsOff();
+void sideLedsOff(void);
 void tankLedsSet(uint32_t c);
 void restart_mega(void);
 void beltError(uint8_t ledState);
@@ -160,9 +160,9 @@ void setup()
   strip.begin();
   strip2.begin();
   tankLedsSet(TANK_COLOR);
-  strip.show();
+  //strip.show();
   sideLedsOff();
-  strip2.show();
+  //strip2.show();
   startWipe = 0;
   offWipe = 0;
   turnOnLeds = 0;
@@ -206,7 +206,7 @@ void loop()
   serialData.Update(inputCh);
   checkString(inputCh);
   if(inputCh[0] !=  '\0')
-  {   
+  {  
     inputCh[0] = '\0';
   }
 //==================================IR SENSOR============================
@@ -307,10 +307,10 @@ void loop()
               toggle = toggle? 0 : 1;
               strip.setPixelColor(5, toggle? TANK_ERROR_COLOR : TANK_OFF_COLOR);
               strip.show();
-              if(tankErrorDuration == TANK_ERROR_DURATION)
-              {
-                sendSerial("no_liquid_error.0."); //TODO
-              }
+//              if(tankErrorDuration == TANK_ERROR_DURATION)
+//              {
+//                sendSerial("no_liquid_error.0."); //TODO
+//              }
               tankErrorDuration--;
               if(tankErrorDuration == 0)
               {
@@ -328,11 +328,11 @@ void loop()
           {
             strip.setPixelColor(5, TANK_ERROR_COLOR);
             strip.show(); //bele ezt is!!!
-//            if(tankErrorDuration == TANK_ERROR_DURATION)
-//            {
-//              sendSerial("no_liquid_error.0."); //TODO
-//              tankErrorDuration--;
-//            }
+            if(tankErrorDuration == TANK_ERROR_DURATION)
+            {
+              sendSerial("no_liquid_error.0."); //TODO
+              tankErrorDuration--;
+            }
           }
        }
       }
@@ -550,16 +550,14 @@ void beltError(uint8_t ledState)
     }
   
 }
-void sideLedsOff()
+void sideLedsOff(void)
 {
   uint32_t c = SIDE_OFF_COLOR;
-  for(uint8_t i = LEDS_SIDE_NUM; i >= 0; i--)
+  for(uint8_t i = LEDS_SIDE_NUM; i > 0; i--)
   {
     strip2.setPixelColor(i,c);
-    //strip2.show();
-    //delay(wait);
   }
-  //strip2.setPixelColor(0,c);
+  strip2.setPixelColor(0,c);
   strip2.show();
 }
 void tankLedsSet(uint32_t c) 
@@ -567,7 +565,6 @@ void tankLedsSet(uint32_t c)
   for (uint8_t i = 0; i < LEDS_TANK_NUM; i++)
   {
     strip.setPixelColor(i, c);
-    //delay(wait);
   }
   strip.show();
 }
