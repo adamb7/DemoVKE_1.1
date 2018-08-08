@@ -33,8 +33,8 @@ Adafruit_NeoPixel strip = Adafruit_NeoPixel(LEDS_TANK_NUM, TANK_PIN, NEO_GRB + N
 Adafruit_NeoPixel strip2 = Adafruit_NeoPixel(LEDS_SIDE_NUM, LINE_PIN, NEO_GRB + NEO_KHZ800);
 
 //======================================================================================================
-void turnoffWipe_side(uint32_t c, uint8_t wait);
-void colorWipe(uint32_t c, uint8_t wait);
+void sideLedsOff();
+void tankLedsSet(uint32_t c);
 void restart_mega(void);
 void beltError(uint8_t ledState);
 void sendSerial(String data);
@@ -159,9 +159,9 @@ void setup()
 {
   strip.begin();
   strip2.begin();
-  colorWipe(TANK_COLOR, 20);
+  tankLedsSet(TANK_COLOR);
   strip.show();
-  turnoffWipe_side(SIDE_OFF_COLOR, 10);
+  sideLedsOff();
   strip2.show();
   startWipe = 0;
   offWipe = 0;
@@ -309,7 +309,7 @@ void loop()
               strip.show();
               if(tankErrorDuration == TANK_ERROR_DURATION)
               {
-                sendSerial("no_liquid_error.0.");
+                sendSerial("no_liquid_error.0."); //TODO
               }
               tankErrorDuration--;
               if(tankErrorDuration == 0)
@@ -327,7 +327,12 @@ void loop()
           else
           {
             strip.setPixelColor(5, TANK_ERROR_COLOR);
-            strip.show();
+            strip.show(); //bele ezt is!!!
+//            if(tankErrorDuration == TANK_ERROR_DURATION)
+//            {
+//              sendSerial("no_liquid_error.0."); //TODO
+//              tankErrorDuration--;
+//            }
           }
        }
       }
@@ -400,8 +405,8 @@ void loop()
     //turn off leds
     if(ledsAllOff == 0)
     {
-      colorWipe(TANK_OFF_COLOR, 20);
-      turnoffWipe_side(SIDE_OFF_COLOR, 10);
+      tankLedsSet(TANK_OFF_COLOR);
+      sideLedsOff();
       ledsAllOff = 1;
     }
   }
@@ -545,23 +550,24 @@ void beltError(uint8_t ledState)
     }
   
 }
-void turnoffWipe_side(uint32_t c, uint8_t wait)
+void sideLedsOff()
 {
-  for(uint8_t i = LEDS_SIDE_NUM; i > 0; i--)
+  uint32_t c = SIDE_OFF_COLOR;
+  for(uint8_t i = LEDS_SIDE_NUM; i >= 0; i--)
   {
     strip2.setPixelColor(i,c);
-    strip2.show();
-    delay(wait);
+    //strip2.show();
+    //delay(wait);
   }
-  strip2.setPixelColor(0,c);
+  //strip2.setPixelColor(0,c);
   strip2.show();
 }
-void colorWipe(uint32_t c, uint8_t wait) 
+void tankLedsSet(uint32_t c) 
 {
   for (uint8_t i = 0; i < LEDS_TANK_NUM; i++)
   {
     strip.setPixelColor(i, c);
-    delay(wait);
+    //delay(wait);
   }
-     strip.show();
+  strip.show();
 }
