@@ -22,7 +22,7 @@
 #define INT_PIN 12
 #define RECONNECT_SPEED 50
 #define WIFI_RECONNECT_SPEED 500
-#define DEBUG_FLAG 1
+#define DEBUG_FLAG 0
 
 // WiFi
 // Make sure to update this for your own WiFi network!
@@ -225,6 +225,7 @@ void loop() {
           //}
         }
           reSub(client);
+          client.publish("discon","ledobta");
           if(DEBUG_FLAG == 1) Serial.println("reconnected");
       }
       
@@ -250,7 +251,8 @@ void loop() {
               }
             //client.connect(clientID, mqtt_username, mqtt_password);
             //delay(50);
-            client.publish((const char*)pch,(const char*)pch_num); 
+            client.publish((const char*)pch,(const char*)pch_num);
+            client.publish("discon","ledobta");
             reSub(client);
         }
         free(toSend_char);
