@@ -149,6 +149,7 @@ uint8_t gwPowerError;
 uint8_t plcError;
 uint8_t paused;
 uint8_t systemHalt;
+uint8_t obstacleBeltstop;
 uint8_t ledsAllOff;
 uint8_t refillTank;
 uint8_t refillCounter;
@@ -160,9 +161,7 @@ void setup()
   strip.begin();
   strip2.begin();
   tankLedsSet(TANK_COLOR);
-  //strip.show();
   sideLedsOff();
-  //strip2.show();
   startWipe = 0;
   offWipe = 0;
   turnOnLeds = 0;
@@ -190,6 +189,7 @@ void setup()
   plcError = 0;
   paused = 0;
   systemHalt = 0;
+  obstacleBeltstop = 0;
   ledsAllOff = 0;
   refillTank = 0;
   refillCounter = 5;
@@ -212,7 +212,7 @@ void loop()
 //==================================IR SENSOR============================
   if(systemHalt == 0)
   {
-    if(paused == 0)
+    if(paused == 0 && obstacleBeltstop == 0)
     {
       //comm_error & comm_power_error !
       if(!gwError && !gwPowerError && !plcError && !startTankError)
@@ -226,7 +226,6 @@ void loop()
             offWipe = 0;
             startDelayOn = 1;
             millisDelay = millis();
-            //outputString = "positionManagement.0.";
             sendSerial("positionManagement.0.");
             
           }
@@ -239,7 +238,6 @@ void loop()
             startWipe = 0;
             startDelayOff = 1;
             millisDelay = millis();
-            //outputString = "positionManagement.1.";
             sendSerial("positionManagement.1.");
           }
         }
@@ -453,6 +451,14 @@ void checkString(String toSend)
     if(toSend == "start")
     {
       paused = 0;
+    }
+    if(toSend == "belt_pause")
+    {
+      obstacleBeltstop = 1;
+    }
+    if(toSend == "belt_resume")
+    {
+      obstacleBeltstop = 0;
     }
   }
   if(toSend == "stop_system")
