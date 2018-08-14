@@ -18,7 +18,7 @@
 // Make sure to update this for your own WiFi network!
 const char* ssid = "VKE_DEMO";
 const char* wifi_password = "IFKADemo";
-IPAddress local_ip(10,3,141,6); //.7)
+IPAddress local_ip(10,3,141,5); //.7)
 IPAddress gateway(10,3,141,1); //dns ugyanez
 IPAddress subnet(255,255,255,0);
 
@@ -30,7 +30,7 @@ const char* mqtt_topic;
 const char* mqtt_username = "user";
 const char* mqtt_password = "user";
 // The client id identifies the ESP8266 device. Think of it a bit like a hostname (Or just a name, like Greg).
-const char* clientID = "loszar";
+const char* clientID = "espf";
 const int mqtt_port = 1883;
 char incomingByte;
 String toSend;
@@ -60,9 +60,9 @@ void setup() {
                                                                                                                                                                                                   
   Serial.begin(115200);
   //ESP.wdtDisable();
-  millisRecon = millis();
-  millisWifi = millis();
-  millisFlag = millis();
+  //millisRecon = millis();
+  //millisWifi = millis();
+  //millisFlag = millis();
   timeNow = 0;
   delayWifi = 500;
   delayRecon = 1000;
@@ -102,10 +102,10 @@ void setup() {
 //      wl_millis = millis();
 //    }
 
-    if(DEBUG_FLAG == 1) Serial.print(".");
+    if(DEBUG_FLAG == 1) {Serial.print(".");}
   }
   // Debugging - Output the IP Address of the ESP8266
-  if(DEBUG_FLAG == 1) Serial.println("WiFi connected");
+  if(DEBUG_FLAG == 1) {Serial.println("WiFi connected");}
   //Serial.print("IP address: ");
   //Serial.println(WiFi.localIP());
 
@@ -215,7 +215,7 @@ void loop() {
           //}
         }
           reSub(client);
-          if(DEBUG_FLAG == 1) Serial.println("reconnected");
+          if(DEBUG_FLAG == 1) {Serial.println("reconnected");}
       }
       
       while(Serial.available() ) {
@@ -273,5 +273,6 @@ void reSub(PubSubClient client){
     client.subscribe("belt_plc_error",1);
     client.subscribe("belt_plc_error_reset",1);
     client.subscribe("console",1);
+    client.subscribe("obstacle_belt_stop",1);
   }
 
