@@ -238,7 +238,6 @@ void loop()
             startWipe = 0;
             startDelayOff = 1;
             millisDelay = millis();
-            sendSerial("positionManagement.1.");
           }
         }
       }
@@ -307,7 +306,7 @@ void loop()
               strip.show();
 //              if(tankErrorDuration == TANK_ERROR_DURATION)
 //              {
-//                sendSerial("no_liquid_error.0."); //TODO
+//                sendSerial("no_liquid_error.0.");
 //              }
               tankErrorDuration--;
               if(tankErrorDuration == 0)
@@ -328,7 +327,7 @@ void loop()
             strip.show(); //bele ezt is!!!
             if(tankErrorDuration == TANK_ERROR_DURATION)
             {
-              sendSerial("no_liquid_error.0."); //TODO
+              sendSerial("no_liquid_error.0.");
               tankErrorDuration--;
             }
           }
@@ -372,6 +371,10 @@ void loop()
       {
         if(millis()- millisLedOff > SIDE_OFF_SPEED)
         {
+          if(ledNumOff == LEDS_SIDE_NUM)//NO UNWANTED DELAY DURING TURN ON
+          {
+            sendSerial("positionManagement.1.");
+          }
           millisLedOff = millis();
           strip2.setPixelColor(ledNumOff,SIDE_OFF_COLOR);
           strip2.show();
@@ -452,14 +455,14 @@ void checkString(String toSend)
     {
       paused = 0;
     }
-    if(toSend == "belt_pause")
-    {
-      obstacleBeltstop = 1;
-    }
-    if(toSend == "belt_resume")
-    {
-      obstacleBeltstop = 0;
-    }
+  }
+  if(toSend == "belt_pause")
+  {
+    obstacleBeltstop = 1;
+  }
+  if(toSend == "belt_resume")
+  {
+    obstacleBeltstop = 0;
   }
   if(toSend == "stop_system")
   {
