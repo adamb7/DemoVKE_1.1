@@ -8,3 +8,6 @@ MQTT_Mega_SPLIT_STRING.ino.ino
 
 Arduino mega:
 mega_class.ino
+
+user: espuser
+pass: espuser
