@@ -1,9 +1,5 @@
-//#include <avr/sleep.h>
-//#include <avr/power.h>
 #include <Adafruit_NeoPixel.h>
-//#ifdef __AVR__
-//#include <avr/power.h>
-//#endif
+
 
 #define TANK_PIN 6
 #define LINE_PIN 8
@@ -156,6 +152,8 @@ uint8_t refillCounter;
 uint8_t startDelayOn;
 uint8_t startDelayOff;
 uint8_t toggle;
+uint8_t reportFlag;
+char* reportData;
 void setup()
 {
   strip.begin();
@@ -196,6 +194,8 @@ void setup()
   startDelayOn = 0;
   startDelayOff = 0;
   toggle = 0;
+  reportFlag = 0;
+  reportData = calloc(13,sizeof(char));
   Serial.flush();
   delay(2000);
 }
@@ -242,10 +242,6 @@ void loop()
         }
       }
   //==================================LEDS===============================
-    //  if(startWipe == 1 && offWipe == 1)
-    //  {
-    //    startWipe = 0;
-    //  }
       //delay turn on 2mp
       if(startDelayOn)
       {
@@ -304,10 +300,6 @@ void loop()
               toggle = toggle? 0 : 1;
               strip.setPixelColor(5, toggle? TANK_ERROR_COLOR : TANK_OFF_COLOR);
               strip.show();
-//              if(tankErrorDuration == TANK_ERROR_DURATION)
-//              {
-//                sendSerial("no_liquid_error.0.");
-//              }
               tankErrorDuration--;
               if(tankErrorDuration == 0)
               {
@@ -470,7 +462,6 @@ void checkString(String toSend)
   }
   if(toSend == "start_system")
   {
-    //systemHalt = 0;
     restart_mega();
   }
   return;
@@ -487,6 +478,7 @@ void sendSerial(String data)
 void restart_mega(void)
 {
   free(inputCh);
+  free(reportData);
   asm volatile ("  jmp 0");
 }
 void beltError(uint8_t ledState)
@@ -499,6 +491,25 @@ void beltError(uint8_t ledState)
   else
   {
     leds = LEDS_SIDE_NUM;
+  }
+  if(!reportFlag)
+  {
+    sprintf(reportData, "%d", leds);
+    strcpy(reportData, "tankState");
+    strcat(reportData, ".");
+    strcat(reportData, leds);
+    strcat(reportData, ".");
+    sendSerial(reportData);
+    memset(reportData, 0, 12*sizeof(char));
+    delay(300);
+    strcpy(reportData, "beltState");
+    strcat(reportData, ".");
+    strcat(reportData, lapCount);
+    strcat(reportData, ".");
+    sendSerial(reportData);
+    memset(reportData, 0, 12*sizeof(char));
+    delay(300);
+    reportFlag = 1; 
   }
   if(plcError)
     {
@@ -529,8 +540,7 @@ void beltError(uint8_t ledState)
       }
     }
   if(beltErrorReset)
-    {
-      
+    {     
       for(uint8_t k = 0;k <= leds; k++)
       {
         
@@ -556,6 +566,7 @@ void beltError(uint8_t ledState)
       }
       strip2.show();
       beltErrorReset = 0;
+      reportFlag = 0;
     }
   
 }
