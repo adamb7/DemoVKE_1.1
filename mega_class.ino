@@ -154,6 +154,7 @@ uint8_t startDelayOff;
 uint8_t toggle;
 uint8_t reportFlag;
 char* reportData;
+char* convertInt;
 void setup()
 {
   strip.begin();
@@ -196,6 +197,7 @@ void setup()
   toggle = 0;
   reportFlag = 0;
   reportData = calloc(13,sizeof(char));
+  convertInt = calloc(2,sizeof(char));
   Serial.flush();
   delay(2000);
 }
@@ -479,6 +481,7 @@ void restart_mega(void)
 {
   free(inputCh);
   free(reportData);
+  free(convertInt);
   asm volatile ("  jmp 0");
 }
 void beltError(uint8_t ledState)
@@ -492,27 +495,45 @@ void beltError(uint8_t ledState)
   {
     leds = LEDS_SIDE_NUM;
   }
-  if(!reportFlag)
-  {
-    sprintf(reportData, "%d", leds);
-    strcpy(reportData, "tankState");
-    strcat(reportData, ".");
-    strcat(reportData, leds);
-    strcat(reportData, ".");
-    sendSerial(reportData);
-    memset(reportData, 0, 12*sizeof(char));
-    delay(300);
-    strcpy(reportData, "beltState");
-    strcat(reportData, ".");
-    strcat(reportData, lapCount);
-    strcat(reportData, ".");
-    sendSerial(reportData);
-    memset(reportData, 0, 12*sizeof(char));
-    delay(300);
-    reportFlag = 1; 
-  }
   if(plcError)
     {
+      if(!reportFlag)
+      {
+        if(ledState)
+        {
+          sprintf(convertInt, "%d", leds);
+        }
+        else
+        {
+          if(ledsAreOn)
+          {
+            sprintf(convertInt, "%d", LEDS_SIDE_NUM);
+          }
+          else
+          {
+            sprintf(convertInt, "%d", 0);
+          }
+        }
+        strcpy(reportData, "beltState");
+        strcat(reportData, ".");
+        strcat(reportData, convertInt);
+        strcat(reportData, ".");
+        sendSerial(reportData);
+        memset(reportData, 0, 12*sizeof(char));
+        memset(convertInt, 0, sizeof(char));
+        delay(150);
+        sprintf(convertInt, "%d", 6-lapCount);
+        strcpy(reportData, "tankState");
+        strcat(reportData, ".");
+        strcat(reportData, convertInt);
+        strcat(reportData, ".");
+        sendSerial(reportData);
+        memset(reportData, 0, 12*sizeof(char));
+        memset(convertInt, 0, sizeof(char));
+        delay(150);
+        reportFlag = 1; 
+      }
+      
       if(millis() - millisPlcErrorDelay > ERROR_DELAY)
       {
         toggle = toggle? 0 : 1;
